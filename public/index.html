@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>نرم افزار چت</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="/public/js/chat.js"></script>-->
+    <script>
+        var socket=io();
+        socket.on('connect', function(){
+            console.log('Connected to server');
+
+            socket.emit('join', "farshad", function(err){
+                if(err){
+                    alert(err)
+                    window.location.href = '/'
+                }else{
+                    console.log('No error')
+                }
+            })
+        });
+        socket.on('newMessage',function (item) {
+            console.log(`your answer is ${item}`);
+        })
+
+    </script>
+
+</head>
+<body>
+    <h3>به نرم افزار چت خوش آمدید </h3>
+<form>
+    <h4>Enter your messages</h4>
+</form>
+</body>
+</html>
