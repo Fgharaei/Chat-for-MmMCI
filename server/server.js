@@ -3,7 +3,7 @@ var {mongoose}=require('../db/mongoose');
 var {User}=require('../models/user');
 var {FOroom}=require('../models/foroom');
 var {BOroom}=require('../models/boroom');
-
+var {ObjectID} = require("mongodb");
 const path = require('path');
 const publicpath = path.join(__dirname , '../public/')
 
@@ -55,6 +55,22 @@ app.get("/chat",(req,res)=>{
         res.status(400).send(err);
     });
 });
+
+app.get("/chat/:id", (req, res) => {
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+    User.findById(id).then((user) => {
+        if (!user) {
+            return res.status(404).send();
+        };
+        res.send(user);
+    }, (err) => {
+        res.status(400).send(err);
+    });
+});
+
 
 io.on('connection', function (socket) {
     console.log(`One user is connected with ID : ${socket.id}`)
