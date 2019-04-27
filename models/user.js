@@ -16,6 +16,14 @@ var User = mongoose.model('User',{
     chatroom:{
         type: String,
         default: null
+    },
+    ischanged:{
+        type: Boolean,
+        default: false
+    },
+    changetime:{
+        type: String,
+        default: null
     }
 });
 

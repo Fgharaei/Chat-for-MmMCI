@@ -6,7 +6,7 @@ var {BOroom}=require('../models/boroom');
 var {ObjectID} = require("mongodb");
 const path = require('path');
 const publicpath = path.join(__dirname , '../public/')
-
+const _ = require('lodash');
 var express = require('express');
 var expressStatic = require('express-static');
 var app = express();
@@ -55,12 +55,11 @@ app.get("/chat",(req,res)=>{
         res.status(400).send(err);
     });
 });
-
 app.get("/chat/:id", (req, res) => {
     var id = req.params.id;
     if (!ObjectID.isValid(id)) {
         return res.status(404).send();
-    }
+    };
     User.findById(id).then((user) => {
         if (!user) {
             return res.status(404).send();
@@ -69,6 +68,43 @@ app.get("/chat/:id", (req, res) => {
     }, (err) => {
         res.status(400).send(err);
     });
+});
+
+app.delete("/chat/:id", (req, res) => {
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    };
+    // User.findByIdAndRemove(id).then((user) => {
+    User.findOneAndDelete({_id : new ObjectID(id)}).then((user) => {
+    // User.findOneAndDelete({name : "Armin Maaf"}).then((user) => {
+        if (!user) {
+            return res.status(404).send();
+        };
+        res.send(user);
+    }, (err) => {
+        res.status(400).send(err);
+    });
+});
+
+app.patch("/chat/:id", (req, res) => {
+    var id = req.params.id;
+    body = _.pick(req.body, ["name", "personalid", "chatroom", "ischanged"]);
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+    ;
+    if (_.isBoolean(body.ischanged) && body.ischanged) {
+        body.changetime = new Date().getTime();
+        User.findByIdAndUpdate(id, {$set: body},{new: true}).then((user) => {
+            res.send(user);
+        }, (err) => {
+            res.status(400).send(err);
+        });
+    } else {
+        res.send("Please define 'ischanged' property");
+    }
+    ;
 });
 
 
