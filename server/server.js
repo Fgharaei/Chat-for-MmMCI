@@ -45,8 +45,15 @@ app.post("/chat", (req, res) => {
         res.send(doc);
     }, (err) => {
         res.status(400).send(err);
-    })
+    });
+});
 
+app.get("/chat",(req,res)=>{
+    User.find().then((doc)=>{
+        res.send(doc);
+    },(err)=>{
+        res.status(400).send(err);
+    });
 });
 
 io.on('connection', function (socket) {
