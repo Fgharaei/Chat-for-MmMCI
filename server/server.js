@@ -13,7 +13,7 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
-
+var {authenticate} = require('./../midelwares/authenticate');
 
 // var newFOroom = new FOroom({
 //     name: "Mohsen Moadab",
@@ -46,6 +46,12 @@ app.post("/user",(req,res)=>{
         res.status(400).send(err);
     });
 });
+
+
+app.post("/user/me", authenticate ,(req, res)=>{
+           res.send(req.user);
+});
+
 app.post("/chat", (req, res) => {
     console.log(req.body);
     var newforoom = new FOroom({
