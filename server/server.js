@@ -15,15 +15,15 @@ var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
 
-// var newUser = new User({
+// var newFOroom = new FOroom({
 //     name: "Mohsen Moadab",
 //     personalid: "091113755851",
 //
 // });
-// newUser.save().then((doc) => {
+// newFOroom.save().then((doc) => {
 //     console.log(JSON.stringify(doc, undefined, 2));
 // }, (err) => {
-//     console.log('Unable to save user', err);
+//     console.log('Unable to save foroom', err);
 // });
 
 app.use(bodyParser.json());
@@ -34,14 +34,26 @@ app.get('/', function (req, res, next) {
     res.sendFile(publicpath + "index.html");
 });
 
+app.post("/user",(req,res)=>{
+    var body = _.pick(req.body,["email","pass"]);
+    var newuser = new User(body);
+
+    newuser.save().then(()=> {
+        return newuser.generateAuthToken();
+    }).then((token)=>{
+        res.header('x-auth',token).send(newuser);
+     }).catch((err)=>{
+        res.status(400).send(err);
+    });
+});
 app.post("/chat", (req, res) => {
     console.log(req.body);
-    var newuser = new User({
+    var newforoom = new FOroom({
         name: req.body.name,
         personalid: req.body.personalid,
         chatroom: req.body.chatroom,
     });
-    newuser.save().then((doc) => {
+    newforoom.save().then((doc) => {
         res.send(doc);
     }, (err) => {
         res.status(400).send(err);
@@ -49,7 +61,7 @@ app.post("/chat", (req, res) => {
 });
 
 app.get("/chat",(req,res)=>{
-    User.find().then((doc)=>{
+    FOroom.find().then((doc)=>{
         res.send(doc);
     },(err)=>{
         res.status(400).send(err);
@@ -60,11 +72,11 @@ app.get("/chat/:id", (req, res) => {
     if (!ObjectID.isValid(id)) {
         return res.status(404).send();
     };
-    User.findById(id).then((user) => {
-        if (!user) {
+    FOroom.findById(id).then((foroom) => {
+        if (!foroom) {
             return res.status(404).send();
         };
-        res.send(user);
+        res.send(foroom);
     }, (err) => {
         res.status(400).send(err);
     });
@@ -75,13 +87,13 @@ app.delete("/chat/:id", (req, res) => {
     if (!ObjectID.isValid(id)) {
         return res.status(404).send();
     };
-    // User.findByIdAndRemove(id).then((user) => {
-    User.findOneAndDelete({_id : new ObjectID(id)}).then((user) => {
-    // User.findOneAndDelete({name : "Armin Maaf"}).then((user) => {
-        if (!user) {
+    // FOroom.findByIdAndRemove(id).then((foroom) => {
+    FOroom.findOneAndDelete({_id : new ObjectID(id)}).then((foroom) => {
+    // FOroom.findOneAndDelete({name : "Armin Maaf"}).then((foroom) => {
+        if (!foroom) {
             return res.status(404).send();
         };
-        res.send(user);
+        res.send(foroom);
     }, (err) => {
         res.status(400).send(err);
     });
@@ -96,8 +108,8 @@ app.patch("/chat/:id", (req, res) => {
     ;
     if (_.isBoolean(body.ischanged) && body.ischanged) {
         body.changetime = new Date().getTime();
-        User.findByIdAndUpdate(id, {$set: body},{new: true}).then((user) => {
-            res.send(user);
+        FOroom.findByIdAndUpdate(id, {$set: body},{new: true}).then((foroom) => {
+            res.send(foroom);
         }, (err) => {
             res.status(400).send(err);
         });
@@ -109,7 +121,7 @@ app.patch("/chat/:id", (req, res) => {
 
 
 io.on('connection', function (socket) {
-    console.log(`One user is connected with ID : ${socket.id}`)
+    console.log(`One foroom is connected with ID : ${socket.id}`)
 
     socket.on("join",function (item,callback) {
         console.log(`your name is ${item}`);
@@ -118,7 +130,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('disconnect',function () {
-    console.log(`One user is connected`)
+    console.log(`One foroom is connected`)
 });
 
 });
