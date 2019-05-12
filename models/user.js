@@ -21,6 +21,50 @@ var UserSchema = new mongoose.Schema({
         minlength: 6,
         trim: true,
     },
+
+    Username: {
+        type: String,
+        required: true,
+        minlength: 1,
+        trim: true,
+    },
+    Phone: {
+        type: String,
+        trim: true,
+    },
+    Date: {
+        type: String,
+        trim: true,
+    },
+    Fname: {
+        type: String,
+        required: true,
+        minlength: 1,
+        trim: true,
+    },
+    Lname: {
+        type: String,
+        required: true,
+        minlength: 1,
+        trim: true,
+    },
+    Province: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    IDnumber: {
+        type: String,
+        required: true,
+        minlength: 6,
+        trim: true,
+    },
+    temptoken: {
+        type: String,
+        trim: true,
+    },
+
+
     tokens: [{
         access: {
             type: String,
@@ -53,16 +97,46 @@ UserSchema.statics.findByToken = function (token) {
 UserSchema.methods.toJSON = function () {
   var user =this;
   var userObject = user.toObject();
-  return _.pick(userObject, ['email']);
+  return _.pick(userObject, ['email', 'Username' ,'Fname' , 'Lname' , 'IDnumber' , 'temptoken']);
 };
 
 UserSchema.methods.generateAuthToken = function () {
     var user = this;
-    var access = 'auth';
-    var token = jwt.sign({_id: user._id.toHexString(),access},'abcd1234').toString();
+    var access = "auth";
+     var token = jwt.sign({_id: user._id.toHexString(),access},'abcd1234', { expiresIn: 6 * 60 * 60 }).toString();
     user.tokens.push({access , token});
     return user.save().then(()=>{
         return token;
+    });
+ };
+
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+    var dtoken = token.toString();
+    console.log(dtoken);
+    return user.update({
+        $pull: {
+            tokens: {dtoken}
+        }
+    });
+};
+
+UserSchema.statics.findByCredentials = function (email, pass) {
+    var User = this;
+    return User.findOne({email}).then((user) => {
+        if (!user) {
+            return Promise.reject("User by this email has not been registered");
+        }
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(pass, user.pass, (err, res) => {
+                if (res) {
+                    resolve(user);
+                } else {
+                    reject("Wrong password");
+                }
+                ;
+            });
+        });
     });
 };
 
